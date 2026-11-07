@@ -64,12 +64,16 @@ form button{background:var(--card);color:var(--ink);border:1px solid var(--bd);b
   <form id="f"><input id="t" placeholder="Eller skriv på engelsk …" autocomplete="off"><button>Send</button></form>
 </footer>
 <script>
+function askKey(msg){return new Promise(res=>{const d=document.createElement('div');d.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:99;padding:20px';
+ d.innerHTML='<div style="background:var(--card);color:var(--ink);border-radius:14px;padding:16px;max-width:420px;width:100%"><div style="font-weight:600;margin-bottom:6px">Anthropic API-nøkkel</div><div style="font-size:13px;color:var(--mute);margin-bottom:10px">'+msg+'</div><input id="kin" type="password" placeholder="sk-ant-…" style="width:100%;box-sizing:border-box"><div style="display:flex;gap:8px;margin-top:10px"><button id="kok" class="btn" style="margin:0">Lagre</button><button id="kno" class="opt">Avbryt</button></div></div>';
+ document.body.appendChild(d);const done=v=>{d.remove();res(v)};
+ d.querySelector('#kok').onclick=()=>done(d.querySelector('#kin').value.trim());d.querySelector('#kno').onclick=()=>done('')})}
 async function apiSample(prompt){
  let k='';try{k=localStorage.getItem('engkey')||''}catch(e){}
- if(!k){k=(window.prompt('Lim inn din Anthropic API-nøkkel (lagres kun på denne enheten):')||'').trim();if(!k)throw new Error('no key');try{localStorage.setItem('engkey',k)}catch(e){}}
+ if(!k){k=await askKey('Lagres kun på denne enheten. Lages på console.anthropic.com.');if(!k)throw new Error('Mangler API-nøkkel (trykk 🔑)');try{localStorage.setItem('engkey',k)}catch(e){}}
  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-5-5',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
- if(r.status===401){try{localStorage.removeItem('engkey')}catch(e){}throw new Error('bad key')}
- if(!r.ok)throw new Error('api '+r.status);
+ if(r.status===401){try{localStorage.removeItem('engkey')}catch(e){}throw new Error('Ugyldig API-nøkkel – prøv igjen')}
+ if(!r.ok)throw new Error('API-feil '+r.status);
  const j=await r.json();return{text:j.content.map(c=>c.text||'').join('')}}
 if(!window.claude)window.claude={use:async()=>apiSample};
 const log=document.getElementById('log'),st=document.getElementById('st'),mic=document.getElementById('mic'),lvl=document.getElementById('lvl');
@@ -127,6 +131,7 @@ async function ask(userText,meta){
     const sc=SC[$('scn').value];const scTxt=sc.r?`ROLE-PLAY: you play ${sc.r}. Stay in character, keep replies short and natural for this situation, and still give the feedback fields as described.`:'';
     let metaTxt='The student typed this (no audio).';
     if(meta){const w=userText.split(/\s+/).length,wpm=Math.round(w/Math.max(meta.secs,1)*60),fill=(userText.match(/\b(um+|uh+|er|hmm+)\b/gi)||[]).length;meta.wpm=wpm;meta.fill=fill;metaTxt=`The student SPOKE this aloud. Speech-recognition confidence: ${meta.conf==null?'unknown':Math.round(meta.conf*100)+'%'}. Speed: ${wpm} words/min (natural conversation is about 130–170). Filler words: ${fill}. Low confidence or odd/unlikely words in the transcript can indicate mispronunciation.`}
+    if(meta&&meta.alts&&meta.alts.length>1)metaTxt+=' Other possible transcriptions: '+meta.alts.slice(1,4).map(a=>'"'+a+'"').join('; ')+'. If a word in the transcript looks like a speech-recognition mistake for a similar-sounding word, assume the student meant the likely word, never repeat offensive words, and mention the possible mispronunciation in "pron".';
     const prompt=`You are a friendly American English conversation tutor for a Norwegian speaker. Student level: ${lvl.value}. ${scTxt}
 Rules: Reply naturally in American English (1–3 short sentences, simple vocabulary for the level) and end with a question to keep the conversation going. The student's text comes from speech recognition, so ignore punctuation/capitalization issues.
 Give feedback on the student's LAST message: if there are grammar, word-choice or unnatural-phrasing mistakes, put the corrected American-English sentence in "correction". Otherwise use "". In "tip", write ONE short helpful explanation or praise in Norwegian (max 25 words).
@@ -143,14 +148,14 @@ ${hist.map(h=>h.r+': '+h.t).join('\n')}`;
     o.vocab=(Array.isArray(o.vocab)?o.vocab:[]).filter(x=>x&&x.en&&x.no&&x.s&&x.s.includes('___')&&!/\s/.test(x.en)).slice(0,2);o.vocab.forEach(x=>{if(!S.words[x.en])S.words[x.en]={no:x.no,s:x.s,box:0,due:0,miss:0}});save();
     o.target=o.correction||userText;o.meta=meta;bubble(o.reply,false,o);speak(o.reply);
     st.textContent='Din tur!';
-  }catch(e){st.textContent=e&&e.code==='rate_limited'?'For mange forespørsler – vent litt.':'Noe gikk galt. Prøv igjen.'}
+  }catch(e){st.textContent=e&&e.code==='rate_limited'?'For mange forespørsler – vent litt.':'Feil: '+((e&&e.message)||'ukjent feil')}
   busy=false;
 }
 
 bubble("Hi there! I’m your English tutor. Tell me a little about yourself. What did you do today?",false);
 hist.push({r:'Tutor',t:"Hi there! I’m your English tutor. Tell me a little about yourself. What did you do today?"});
 
-function listenOnce(onInt,onDone){
+function listenOnceOld(onInt,onDone){
   try{speechSynthesis.cancel()}catch(e){}
   const r=new SR();r.lang='en-US';r.interimResults=true;let fin='',conf=null;
   r.onresult=e=>{let s='';for(const x of e.results){s+=x[0].transcript;if(x.isFinal){fin=s;conf=x[0].confidence}}onInt(s)};
@@ -163,17 +168,17 @@ function practice(target,box){
   const h=document.createElement('button');h.className='sp';h.textContent='🔊 Hør riktig';h.onclick=()=>speak(target);
   const m=document.createElement('button');m.className='sp';m.textContent='🎤 Si den';
   const res=document.createElement('div');res.className='x';
-  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},(said,conf)=>{m.disabled=false;showRes(target,said,res)})};
+  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},(said,conf,alts,info)=>{m.disabled=false;if(!said){res.textContent=listenMsg(info);return}showRes(target,said,res,alts)})};
   const sl=E('button','sp','🐢 Sakte');sl.onclick=()=>speak(target,1);
   const rb=E('button','sp','⏺ Ta opp deg selv'),rbox=E('div','x');rb.onclick=()=>recToggle(rb,rbox,target);
   row.append(h,sl,m,rb);box.append(t,row,res,rbox);speak(target);
 }
-function showRes(target,said,res){
+function showRes(target,said,res,alts){
   res.innerHTML='';
   if(!said){res.textContent='Hørte ikke noe. Prøv igjen.';return}
-  const heard=norm(said);const tw=target.split(/\s+/).filter(Boolean);let ok=0;
+  const heard=norm(said),aset=new Set((alts||[]).flatMap(norm));const tw=target.split(/\s+/).filter(Boolean);let ok=0;
   tw.forEach(w=>{const n=norm(w)[0];const i=n?heard.indexOf(n):-1;const s=document.createElement('span');s.textContent=w+' ';
-    if(!n||i>-1){if(i>-1)heard.splice(i,1);s.className='w ok';ok++}else s.className='w bad';res.appendChild(s)});
+    if(!n||i>-1||aset.has(n)){if(i>-1)heard.splice(i,1);s.className='w ok';ok++}else s.className='w bad';res.appendChild(s)});
   const pct=Math.round(ok/tw.length*100);bump();
   const d=document.createElement('div');
   d.textContent=pct===100?'🎉 Perfekt! Alle ordene ble forstått.':pct+'% forstått. De røde ordene ble ikke gjenkjent – hør modellen og prøv igjen.';
@@ -206,7 +211,7 @@ function drill(title,list){
 function sayWord(){
  const body=screen('Si ordet på engelsk');
  const render=()=>{body.innerHTML='';const w=pick(V),res=E('div','x'),m=E('button','btn','🎤 Si det på engelsk'),nx=E('button','btn','Neste →');
-  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},said=>{m.disabled=false;if(!said){res.textContent='Hørte ikke noe. Prøv igjen.';return}const ok=norm(said).includes(norm(w.en)[0]);rec(w,ok);bump();res.textContent=(ok?'✅ Riktig! ':'❌ Jeg hørte «'+said+'». ')+w.en+' – '+w.s.replace('___',w.en);speak(w.en)})};
+  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},(said,conf,alts,info)=>{m.disabled=false;if(!said){res.textContent=listenMsg(info);return}const nw=norm(w.en)[0],ok=(alts.length?alts:[said]).some(a=>norm(a).some(h=>h===nw||(nw.length>=5&&lev(h,nw)<=1)));rec(w,ok);bump();res.textContent=(ok?'✅ Riktig! ':'❌ Jeg hørte «'+said+'». ')+w.en+' – '+w.s.replace('___',w.en);speak(w.en)})};
   nx.onclick=render;body.append(E('div','q',w.no),m,res,nx)};
  render()}
 async function newWords(topic,btn){
@@ -227,7 +232,7 @@ function menu(){exB.innerHTML='';
   ['🎯 Setningsoving','Si setninger høyt og få ord-for-ord-sjekk',()=>drill('Setningsoving',SN[lvl.value])],
   ['🌀 Tungebrekkere','Trener rytme og vanskelige lyder',()=>drill('Tungebrekkere',TW)],
   ['👂 Minimalpar','Hør forskjellen: ship / sheep, think / sink',()=>quiz('Minimalpar',()=>{const p=pick(MP),a=pick(p);return{audio:a,prompt:'Hvilket ord hørte du?',options:shuf(p),answer:a,note:p[0]+' ≠ '+p[1]}})]]);
- sec('Norske problemlyder',SND.map(g=>[g.n,g.d,()=>sound(g)]));
+ sec('Norske problemlyder',[['💣 Bomb vs. tomb','Stum b og ulik vokal',bt],...SND.map(g=>[g.n,g.d,()=>sound(g)])]);
  sec('Trykk og tonefall',[['🔤 Ordtrykk (quiz)','Hvilken stavelse har trykk?',()=>quiz('Ordtrykk',mkST)],['🎯 Si ordene med riktig trykk','Øv og sammenlign med modellen',()=>drill('Ordtrykk',ST.map(x=>x[0]))],['↗ Tonefall (quiz)','Stigende eller fallende?',()=>quiz('Tonefall',mkIN)],['🎤 Si setningene med tonefall','Øv og ta opp deg selv',()=>drill('Tonefall',IN.map(x=>x[0]))]]);
  sec('Lytting',[['✍️ Diktat','Hør en setning og skriv den',dictate]]);
  sec('Ordforråd',[
@@ -304,12 +309,50 @@ const ST=[['banana',['ba','na','na'],1],['photograph',['pho','to','graph'],0],['
 const IN=[['Are you coming?','↗ Stigende','Ja/nei-spørsmål går opp mot slutten.'],['Where do you live?','↘ Fallende','Spørsmål med hv-ord (what, where, why) går ned.'],['I’m from Norway.','↘ Fallende','Vanlige utsagn går ned til slutt.'],['Do you like coffee?','↗ Stigende','Ja/nei-spørsmål går opp.'],['What time is it?','↘ Fallende','Hv-spørsmål går ned.'],['Is this seat taken?','↗ Stigende','Ja/nei-spørsmål går opp.'],['Thank you very much.','↘ Fallende','Utsagn går ned.'],['Can I help you?','↗ Stigende','Ja/nei-spørsmål går opp.']];
 const mkST=()=>{const [w,s,i]=pick(ST);return{audio:w,prompt:s.join('-'),options:s.map((x,k)=>(k+1)+' · '+x),answer:(i+1)+' · '+s[i],note:s.map((x,k)=>k===i?x.toUpperCase():x).join('-'),say:w}};
 const mkIN=()=>{const [t,a,n]=pick(IN);return{prompt:t,options:['↗ Stigende','↘ Fallende'],answer:a,note:n,say:t}};
+const BAD=/\b(fuck\w*|shit\w*|bitch\w*|cunt\w*|dick\w*|pussy|asshole\w*|nigg\w*|fag\w*|whore|slut)\b/i;
+function listenOnce(onInt,onDone){
+ try{speechSynthesis.cancel()}catch(e){}
+ const r=new SR();r.lang='en-US';r.interimResults=true;r.maxAlternatives=5;
+ let last='',alts=[],conf=null,t0=0,err='',bad=false;
+ r.onresult=e=>{if(!t0)t0=Date.now();
+  const n=Math.max(...[...e.results].map(x=>x.length)),cand=[];
+  for(let k=0;k<n;k++){let s='',c=0;for(const x of e.results){const a=x[k]||x[0];s+=a.transcript;c+=a.confidence||0}cand.push({t:s.trim(),c:c/e.results.length})}
+  const ok=cand.filter(x=>x.t&&!BAD.test(x.t));
+  alts=ok.map(x=>x.t);bad=!ok.length&&cand.length>0;last=ok[0]?ok[0].t:'';conf=ok[0]&&ok[0].c?ok[0].c:null;
+  onInt(bad?'…':last)};
+ r.onerror=e=>{err=e.error};
+ r.onend=()=>onDone(last,conf,alts,{secs:t0?(Date.now()-t0)/1000:0,bad,err});
+ try{r.start()}catch(e){onDone('',null,[],{secs:0,bad:false,err:'service-not-allowed'})}
+ return r}
+function lev(a,b){const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
+function listenMsg(i){if(!i)return 'Hørte ikke noe. Prøv igjen.';if(i.bad)return 'Jeg forsto ikke det. Prøv igjen litt tydeligere.';
+ const m={'not-allowed':'Mikrofonen er blokkert. Gi tilgang i innstillingene.','service-not-allowed':'Talegjenkjenning er ikke tillatt her. Åpne appen i nettleseren (Chrome/Safari), eller skriv i stedet.','audio-capture':'Fant ikke mikrofonen.','network':'Talegjenkjenning trenger nett. Sjekk tilkoblingen.','language-not-supported':'Engelsk talegjenkjenning støttes ikke her.'};
+ return m[i.err]||'Hørte ikke noe. Prøv igjen.'}
+function unlockTTS(){try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+addEventListener('pointerdown',unlockTTS,{once:true});
+let micOn=null;
+function micHandler(){
+ if(micOn){micOn.stop();return}
+ mic.classList.add('rec');st.textContent='Lytter … trykk igjen for å stoppe';
+ micOn=listenOnce(s=>{st.textContent='“'+s+'”'},(said,conf,alts,info)=>{micOn=null;mic.classList.remove('rec');
+  if(!said){st.textContent=listenMsg(info);return}
+  ask(said,{conf,secs:info.secs,alts})})}
+const BT_V=[['bomb','AH'],['tomb','OO'],['womb','OO'],['calm','AH'],['palm','AH'],['room','OO'],['moon','OO'],['comb','OH'],['thumb','UH'],['numb','UH'],['dumb','UH'],['crumb','UH']];
+const BT_O=['AH (som a i far)','OO (som o i sko)','OH (som i go)','UH (som i but)'];
+const BT_S=[['They found a bomb near the bridge.','bomb'],['The bomb squad arrived quickly.','bomb'],['It was a fake bomb.','bomb'],['We visited an ancient tomb in Egypt.','tomb'],['The tomb was hidden underground.','tomb'],['Tourists waited in line at the tomb.','tomb']];
+function bt(){const b=screen('Bomb vs. tomb');
+ b.append(E('div','x','Begge ordene har stum b på slutten: lukk leppene på «m» og ikke si b. Forskjellen er vokalen (amerikansk): «bomb» ≈ «baam», med åpen AH-lyd som a i «far», og rimer med calm og palm. «tomb» ≈ «toom», med lang OO-lyd som o i «sko», og rimer med room og moon. Ikke si «tåmb».'));
+ const mk=(t,f)=>{const x=E('button','btn',t);x.onclick=f;b.append(x)};
+ mk('👂 Bomb eller tomb? (hør)',()=>quiz('Bomb eller tomb?',()=>{const x=pick(['bomb','tomb']);return{audio:x,prompt:'Hvilket ord hørte du?',options:['bomb','tomb'],answer:x,note:'bomb = baam (AH) · tomb = toom (OO). Begge har stum b.'}},8));
+ mk('📖 I setninger (hør)',()=>quiz('Bomb/tomb i setninger',()=>{const [t,a]=pick(BT_S);return{audio:t,prompt:'Hvilket ord var i setningen?',options:['bomb','tomb'],answer:a,note:t}},6));
+ mk('🔤 Vokal-quiz (stum b)',()=>quiz('Hvilken vokal?',()=>{const [w,a]=pick(BT_V),i={AH:0,OO:1,OH:2,UH:3}[a];return{prompt:w,options:BT_O,answer:BT_O[i],note:w+' – b-en på slutten er stum.',say:w}},8));
+ mk('🎯 Si ordene',()=>drill('Bomb vs. tomb',['bomb','tomb','bomb tomb bomb tomb','calm','room','comb','thumb','womb','They found a bomb near the tomb.','The tomb was quiet, but the bomb was loud.']))}
 $('mode').onclick=()=>{const on=exB.hidden;exB.hidden=!on;log.hidden=on;$('ft').hidden=on;$('mode').textContent=on?'💬 Samtale':'📚 Øvelser';try{speechSynthesis.cancel()}catch(e){}if(on)menu()};
 document.getElementById('f').onsubmit=e=>{e.preventDefault();const i=document.getElementById('t');const v=i.value.trim();if(v){i.value='';ask(v)}};
 
 if(!SR){mic.style.display='none';st.textContent='Taleinput støttes ikke i denne nettleseren – skriv i stedet.'}
 else{
-  let rec=null,on=false;
+  let rec=null,on=false;mic.onclick=micHandler;if(0)
   mic.onclick=()=>{
     if(on){rec&&rec.stop();return}
     try{speechSynthesis.cancel()}catch(e){}
@@ -322,7 +365,7 @@ else{
     rec.start();
   };
 }
-document.getElementById('key').onclick=()=>{const v=window.prompt('Ny Anthropic API-nøkkel (tom = slett):');if(v===null)return;const k=v.trim();try{k?localStorage.setItem('engkey',k):localStorage.removeItem('engkey')}catch(e){}};
+document.getElementById('key').onclick=async()=>{const k=await askKey('Ny nøkkel. Tom = slett lagret nøkkel.');try{k?localStorage.setItem('engkey',k):localStorage.removeItem('engkey')}catch(e){}};
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
 </body>
