@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snakk engelsk</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2f5fd0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Snakk engelsk">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--ink:#1c1b19;--mute:#6b6a64;--acc:#2f5fd0;--accink:#fff;--me:#e4ebfb;--fb:#fff4d6;--fbink:#5a4300;--bd:#dedbd2;--rec:#d93a3a;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--card:#222220;--ink:#efeee9;--mute:#9a988f;--acc:#6f95f0;--accink:#0d1a3a;--me:#25304d;--fb:#3a3015;--fbink:#f2dc9a;--bd:#363530}}
+:root[data-theme="dark"]{--bg:#161615;--card:#222220;--ink:#efeee9;--mute:#9a988f;--acc:#6f95f0;--accink:#0d1a3a;--me:#25304d;--fb:#3a3015;--fbink:#f2dc9a;--bd:#363530}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+header{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h1{font-size:18px;margin:0;flex:1}
+select{background:var(--card);color:var(--ink);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;font:inherit;font-size:14px}
+#log{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px}
+.b{max-width:86%;padding:10px 13px;border-radius:16px;background:var(--card);border:1px solid var(--bd);align-self:flex-start;overflow-wrap:anywhere}
+.b.me{align-self:flex-end;background:var(--me);border-color:transparent}
+.fb{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--fb);color:var(--fbink);font-size:14px}
+.fb b{display:block;margin-bottom:2px}
+.sp{background:none;border:0;color:var(--acc);font:inherit;font-size:13px;padding:4px 0 0;cursor:pointer}
+footer{padding:10px 14px 14px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:8px;align-items:center}
+#mic{width:72px;height:72px;border-radius:50%;border:0;background:var(--acc);color:var(--accink);font-size:30px;cursor:pointer}
+#mic.rec{background:var(--rec);color:#fff;animation:p 1s infinite}
+@keyframes p{50%{transform:scale(1.08)}}
+#st{font-size:13px;color:var(--mute);min-height:18px;text-align:center}
+form{display:flex;gap:8px;width:100%}
+input{flex:1;min-width:0;background:var(--card);color:var(--ink);border:1px solid var(--bd);border-radius:10px;padding:10px;font:inherit}
+form button{background:var(--card);color:var(--ink);border:1px solid var(--bd);border-radius:10px;padding:0 14px;font:inherit}
+.x{margin-top:5px;font-size:13px}.pr{margin-top:8px;padding-top:6px;border-top:1px dashed var(--bd)}.pt{font-weight:600;margin:4px 0}.w.ok{color:#2a9d4a;font-weight:600}.w.bad{color:var(--rec);text-decoration:underline;font-weight:600}.sp{margin-right:12px}
+[hidden]{display:none!important}#ex{flex:1;overflow-y:auto;padding:14px}#ex h2{font-size:15px;color:var(--mute);margin:14px 0 8px}
+.card{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;background:var(--card);color:var(--ink);border:1px solid var(--bd);border-radius:12px;padding:11px 13px;margin-bottom:8px;font:inherit;cursor:pointer}.card span{font-size:13px;color:var(--mute)}
+.btn,.bk{background:var(--acc);color:var(--accink);border:0;border-radius:10px;padding:10px 14px;font:inherit;margin:8px 8px 0 0;cursor:pointer}.bk{background:none;color:var(--acc);padding:0;margin:0}
+.q{font-size:22px;font-weight:600;margin:10px 0}.big{font-size:22px;font-weight:600;margin:16px 0}
+.opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.opt{background:var(--card);color:var(--ink);border:1px solid var(--bd);border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}.opt.good{border-color:#2a9d4a;background:rgba(42,157,74,.18)}.opt.badc{border-color:var(--rec);background:rgba(217,58,58,.18)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🇺🇸 Snakk engelsk</h1>
+  <select id="lvl" aria-label="Nivå">
+    <option value="beginner">Nybegynner</option>
+    <option value="intermediate" selected>Middels</option>
+    <option value="advanced">Avansert</option>
+  </select>
+  <select id="vsel" aria-label="Stemme"></select>
+  <select id="scn" aria-label="Scenario"><option value="free">Fri samtale</option><option value="interview">Jobbintervju</option><option value="restaurant">Restaurant</option><option value="airport">Flyplass</option><option value="phone">Telefonsamtale</option><option value="doctor">Hos legen</option><option value="shop">I butikken</option></select>
+  <button id="key" class="opt" title="API-nøkkel" style="padding:6px 10px">🔑</button>
+  <button id="mode" class="btn" style="margin:0">📚 Øvelser</button>
+</header>
+<div id="log"></div>
+<div id="ex" hidden></div>
+<footer id="ft">
+  <div id="st">Trykk på mikrofonen og snakk engelsk</div>
+  <button id="mic" aria-label="Snakk">🎤</button>
+  <form id="f"><input id="t" placeholder="Eller skriv på engelsk …" autocomplete="off"><button>Send</button></form>
+</footer>
+<script>
+async function apiSample(prompt){
+ let k='';try{k=localStorage.getItem('engkey')||''}catch(e){}
+ if(!k){k=(window.prompt('Lim inn din Anthropic API-nøkkel (lagres kun på denne enheten):')||'').trim();if(!k)throw new Error('no key');try{localStorage.setItem('engkey',k)}catch(e){}}
+ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-5-5',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+ if(r.status===401){try{localStorage.removeItem('engkey')}catch(e){}throw new Error('bad key')}
+ if(!r.ok)throw new Error('api '+r.status);
+ const j=await r.json();return{text:j.content.map(c=>c.text||'').join('')}}
+if(!window.claude)window.claude={use:async()=>apiSample};
+const log=document.getElementById('log'),st=document.getElementById('st'),mic=document.getElementById('mic'),lvl=document.getElementById('lvl');
+let hist=[],busy=false,sample=null,voice=null;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+
+let vlist=[];
+function score(x){const n=x.name;let s=0;
+ if(/natural|neural|premium|enhanced|online/i.test(n))s+=20;
+ if(/ava|zoe|evan|nathan|allison|samantha|aria|jenny|ana|michelle|guy|google us/i.test(n))s+=8;
+ if(!x.localService)s+=4;
+ if(/compact|fred|albert|zarvox|bad|bells|boing|bubbles|cellos|trinoids|whisper|wobble|organ|superstar|jester|junior|ralph|kathy|hysterical|deranged/i.test(n))s-=50;
+ return s}
+function pickVoice(){
+ vlist=speechSynthesis.getVoices().filter(x=>/en[-_]US/i.test(x.lang)).sort((a,b)=>score(b)-score(a));
+ const sel=document.getElementById('vsel');const cur=sel.value;sel.innerHTML='';
+ vlist.forEach((x,i)=>{const o=document.createElement('option');o.value=i;o.textContent=x.name.replace(/^(Microsoft|Google)\s*/,'').slice(0,22);sel.appendChild(o)});
+ if(!vlist.length)sel.style.display='none';
+ if(cur&&vlist[cur])sel.value=cur;
+ voice=vlist[sel.value||0]||null}
+document.getElementById('vsel').onchange=e=>{voice=vlist[e.target.value];speak('Hi! This is how I sound. Is this better?')};
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
+function speak(txt,sl){try{speechSynthesis.cancel();
+ const parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];
+ parts.forEach((s,i)=>{s=s.trim();if(!s)return;const u=new SpeechSynthesisUtterance(s);u.lang='en-US';if(voice)u.voice=voice;
+  u.rate=sl?0.6:(lvl.value==='beginner'?0.82:0.92);
+  u.pitch=/\?$/.test(s)?1.08:1;
+  speechSynthesis.speak(u)})}catch(e){}}
+
+function bubble(txt,me,fb){
+  const d=document.createElement('div');d.className='b'+(me?' me':'');
+  const p=document.createElement('div');p.textContent=txt;d.appendChild(p);
+  if(fb&&(fb.correction||fb.tip||fb.pron)){
+    const f=document.createElement('div');f.className='fb';
+    if(fb.correction){const b=document.createElement('b');b.textContent='Bedre: '+fb.correction;f.appendChild(b)}
+    if(fb.tip){const s=document.createElement('span');s.textContent=fb.tip;f.appendChild(s)}
+    const ex=t=>{const e=document.createElement('div');e.className='x';e.textContent=t;f.appendChild(e)};
+    if(fb.pron)ex('🗣️ Uttale: '+fb.pron);
+    if(fb.vocab&&fb.vocab.length)ex('📌 Lagret i Mine ord: '+fb.vocab.map(v=>v.en+' = '+v.no).join(', '));
+    const m=fb.meta;if(m&&m.wpm!=null)ex('🎙️ '+m.wpm+' ord/min'+(m.conf!=null?' · gjenkjenning '+Math.round(m.conf*100)+'%':'')+(m.fill?' · '+m.fill+' fyllord':'')+' · mål: 120–160 ord/min');
+    d.appendChild(f);
+    if(fb.target&&SR){const pb=document.createElement('div');pb.className='pr';const pbt=document.createElement('button');pbt.className='sp';pbt.textContent='🎯 Øv på uttalen';const box=document.createElement('div');pbt.onclick=()=>{pbt.remove();practice(fb.target,box)};pb.append(pbt,box);d.appendChild(pb)}
+  }
+  if(!me){const s=document.createElement('button');s.className='sp';s.textContent='🔊 Hør igjen';s.onclick=()=>speak(txt);d.appendChild(s);const s2=document.createElement('button');s2.className='sp';s2.textContent='🐢 Sakte';s2.onclick=()=>speak(txt,1);d.appendChild(s2)}
+  log.appendChild(d);log.scrollTop=log.scrollHeight;return d;
+}
+
+async function ask(userText,meta){
+  if(busy)return;busy=true;bump();
+  bubble(userText,true);hist.push({r:'Student',t:userText});
+  st.textContent='Tenker …';
+  try{
+    if(!sample)sample=await claude.use('sample');
+    if(!sample){st.textContent='AI er ikke tilgjengelig her.';busy=false;return}
+    const sc=SC[$('scn').value];const scTxt=sc.r?`ROLE-PLAY: you play ${sc.r}. Stay in character, keep replies short and natural for this situation, and still give the feedback fields as described.`:'';
+    let metaTxt='The student typed this (no audio).';
+    if(meta){const w=userText.split(/\s+/).length,wpm=Math.round(w/Math.max(meta.secs,1)*60),fill=(userText.match(/\b(um+|uh+|er|hmm+)\b/gi)||[]).length;meta.wpm=wpm;meta.fill=fill;metaTxt=`The student SPOKE this aloud. Speech-recognition confidence: ${meta.conf==null?'unknown':Math.round(meta.conf*100)+'%'}. Speed: ${wpm} words/min (natural conversation is about 130–170). Filler words: ${fill}. Low confidence or odd/unlikely words in the transcript can indicate mispronunciation.`}
+    const prompt=`You are a friendly American English conversation tutor for a Norwegian speaker. Student level: ${lvl.value}. ${scTxt}
+Rules: Reply naturally in American English (1–3 short sentences, simple vocabulary for the level) and end with a question to keep the conversation going. The student's text comes from speech recognition, so ignore punctuation/capitalization issues.
+Give feedback on the student's LAST message: if there are grammar, word-choice or unnatural-phrasing mistakes, put the corrected American-English sentence in "correction". Otherwise use "". In "tip", write ONE short helpful explanation or praise in Norwegian (max 25 words).
+${metaTxt}
+If the student spoke, add "pron": ONE specific pronunciation/fluency tip in Norwegian (max 30 words) about sounds Norwegian speakers typically struggle with in the words they used (th, w/v, r, short i vs ee, schwa, word stress, linking, rhythm), aimed at sounding fluent and natural. If typed, use "".
+Also add "vocab": up to 2 useful English words (single words) from the conversation that the student should learn or misused, each {"en":"word","no":"Norwegian translation","s":"short English sentence with the word replaced by ___"}; use [] if none.
+Return ONLY JSON: {"reply":"...","correction":"...","tip":"...","pron":"...","vocab":[]}
+
+Conversation so far:
+${hist.map(h=>h.r+': '+h.t).join('\n')}`;
+    const res=await sample(prompt,{cache:false,modelTier:'quick'});
+    let o;try{o=JSON.parse(res.text.replace(/```json|```/g,'').trim())}catch(e){o={reply:res.text,correction:'',tip:''}}
+    hist.push({r:'Tutor',t:o.reply});
+    o.vocab=(Array.isArray(o.vocab)?o.vocab:[]).filter(x=>x&&x.en&&x.no&&x.s&&x.s.includes('___')&&!/\s/.test(x.en)).slice(0,2);o.vocab.forEach(x=>{if(!S.words[x.en])S.words[x.en]={no:x.no,s:x.s,box:0,due:0,miss:0}});save();
+    o.target=o.correction||userText;o.meta=meta;bubble(o.reply,false,o);speak(o.reply);
+    st.textContent='Din tur!';
+  }catch(e){st.textContent=e&&e.code==='rate_limited'?'For mange forespørsler – vent litt.':'Noe gikk galt. Prøv igjen.'}
+  busy=false;
+}
+
+bubble("Hi there! I’m your English tutor. Tell me a little about yourself. What did you do today?",false);
+hist.push({r:'Tutor',t:"Hi there! I’m your English tutor. Tell me a little about yourself. What did you do today?"});
+
+function listenOnce(onInt,onDone){
+  try{speechSynthesis.cancel()}catch(e){}
+  const r=new SR();r.lang='en-US';r.interimResults=true;let fin='',conf=null;
+  r.onresult=e=>{let s='';for(const x of e.results){s+=x[0].transcript;if(x.isFinal){fin=s;conf=x[0].confidence}}onInt(s)};
+  r.onerror=()=>{};r.onend=()=>onDone(fin.trim(),conf);r.start();return r}
+const norm=s=>s.toLowerCase().replace(/’/g,"'").replace(/[^a-z0-9' ]/g,'').split(/\s+/).filter(Boolean);
+function practice(target,box){
+  box.innerHTML='';
+  const t=document.createElement('div');t.className='pt';t.textContent='Si: '+target;
+  const row=document.createElement('div');
+  const h=document.createElement('button');h.className='sp';h.textContent='🔊 Hør riktig';h.onclick=()=>speak(target);
+  const m=document.createElement('button');m.className='sp';m.textContent='🎤 Si den';
+  const res=document.createElement('div');res.className='x';
+  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},(said,conf)=>{m.disabled=false;showRes(target,said,res)})};
+  const sl=E('button','sp','🐢 Sakte');sl.onclick=()=>speak(target,1);
+  const rb=E('button','sp','⏺ Ta opp deg selv'),rbox=E('div','x');rb.onclick=()=>recToggle(rb,rbox,target);
+  row.append(h,sl,m,rb);box.append(t,row,res,rbox);speak(target);
+}
+function showRes(target,said,res){
+  res.innerHTML='';
+  if(!said){res.textContent='Hørte ikke noe. Prøv igjen.';return}
+  const heard=norm(said);const tw=target.split(/\s+/).filter(Boolean);let ok=0;
+  tw.forEach(w=>{const n=norm(w)[0];const i=n?heard.indexOf(n):-1;const s=document.createElement('span');s.textContent=w+' ';
+    if(!n||i>-1){if(i>-1)heard.splice(i,1);s.className='w ok';ok++}else s.className='w bad';res.appendChild(s)});
+  const pct=Math.round(ok/tw.length*100);bump();
+  const d=document.createElement('div');
+  d.textContent=pct===100?'🎉 Perfekt! Alle ordene ble forstått.':pct+'% forstått. De røde ordene ble ikke gjenkjent – hør modellen og prøv igjen.';
+  res.appendChild(d);
+}
+const MP=[['ship','sheep'],['think','sink'],['very','wary'],['bed','bad'],['full','fool'],['live','leave'],['light','right'],['three','free'],['vest','west'],['cheap','jeep'],['pen','pan'],['cut','cat']];
+const TW=['She sells seashells by the seashore.','Peter Piper picked a peck of pickled peppers.','How much wood would a woodchuck chuck?','Red lorry, yellow lorry.','The thirty-three thieves thought they thrilled the throne.','I wish to wash my Irish wristwatch.'];
+const SN={beginner:['I think this is very good.','Where is the third train?','My brother likes red apples.','What do you want for lunch?','Thank you for the water.','I would like a cup of coffee.'],intermediate:['I really thought the weather would be better.','Could you tell me where the nearest pharmacy is?','We’ve been working on this project for three weeks.','She wore a very thin red sweater.','I’d rather walk than wait for the bus.','Would you mind if I opened the window?'],advanced:['Whether the weather is rough or not, we’ll go through with it.','The thorough analysis revealed several worrying trends.','I wouldn’t have worried if they’d only called earlier.','Thirty-three thousand people attended the world championship.','Honestly, it’s rather a pleasant surprise to see you here.','He asked whether the results were reliable enough to publish.']};
+let V=[{en:'borrow',no:'låne',s:'Can I ___ your pen?'},{en:'schedule',no:'timeplan',s:'What’s your ___ for tomorrow?'},{en:'weather',no:'vær',s:'The ___ is great today.'},{en:'expensive',no:'dyr',s:'This jacket is too ___.'},{en:'tired',no:'sliten',s:'I’m really ___ after work.'},{en:'neighbor',no:'nabo',s:'My ___ has a big dog.'},{en:'receipt',no:'kvittering',s:'Can I have the ___, please?'},{en:'delay',no:'forsinkelse',s:'There is a ___ at the airport.'},{en:'invite',no:'invitere',s:'I want to ___ you to dinner.'},{en:'improve',no:'forbedre',s:'I want to ___ my English.'},{en:'afford',no:'ha råd til',s:'I can’t ___ a new car.'},{en:'actually',no:'faktisk',s:'I ___ live in Oslo.'}];
+const $=id=>document.getElementById(id),exB=$('ex');
+const E=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+function screen(title){exB.innerHTML='';const b=E('button','bk','← Tilbake');b.onclick=menu;const body=E('div');exB.append(b,E('h2','',title),body);return body}
+function quiz(title,make,n=6){
+ const body=screen(title);let i=0,sc=0;
+ const next=()=>{body.innerHTML='';
+  if(i>=n){const b=E('button','btn','Prøv igjen');b.onclick=()=>quiz(title,make,n);body.append(E('div','big','Ferdig! '+sc+' / '+n),b);return}
+  const q=make();body.append(E('div','x',(i+1)+' / '+n));
+  if(q.audio){const b=E('button','btn','🔊 Hør igjen');b.onclick=()=>speak(q.audio);body.append(b);setTimeout(()=>speak(q.audio),250)}
+  if(q.prompt)body.append(E('div','q',q.prompt));
+  const fb=E('div','x'),opts=E('div','opts');
+  q.options.forEach(o=>{const b=E('button','opt',o);b.onclick=()=>{opts.querySelectorAll('button').forEach(x=>{x.disabled=true;if(x.textContent===q.answer)x.classList.add('good')});if(o===q.answer)sc++;else b.classList.add('badc');if(q.w){rec(q.w,o===q.answer);bump()}fb.textContent=q.note||'';if(q.say)speak(q.say);const nx=E('button','btn',i+1>=n?'Se resultat':'Neste →');nx.onclick=()=>{i++;next()};body.append(nx)};opts.append(b)});
+  body.append(opts,fb)};
+ next()}
+function drill(title,list){
+ const body=screen(title),src=shuf(list),box=E('div'),nx=E('button','btn','Neste →');let i=0;
+ nx.onclick=()=>{i++;practice(src[i%src.length],box)};
+ body.append(box,nx);practice(src[0],box)}
+function sayWord(){
+ const body=screen('Si ordet på engelsk');
+ const render=()=>{body.innerHTML='';const w=pick(V),res=E('div','x'),m=E('button','btn','🎤 Si det på engelsk'),nx=E('button','btn','Neste →');
+  m.onclick=()=>{res.textContent='Lytter …';m.disabled=true;listenOnce(s=>{res.textContent='“'+s+'”'},said=>{m.disabled=false;if(!said){res.textContent='Hørte ikke noe. Prøv igjen.';return}const ok=norm(said).includes(norm(w.en)[0]);rec(w,ok);bump();res.textContent=(ok?'✅ Riktig! ':'❌ Jeg hørte «'+said+'». ')+w.en+' – '+w.s.replace('___',w.en);speak(w.en)})};
+  nx.onclick=render;body.append(E('div','q',w.no),m,res,nx)};
+ render()}
+async function newWords(topic,btn){
+ btn.disabled=true;const old=btn.textContent;btn.textContent='Lager ord …';
+ try{if(!sample)sample=await claude.use('sample');
+  const r=await sample(`Create 12 useful American English vocabulary words about "${topic}" for a Norwegian learner, level ${lvl.value}. Return ONLY a JSON array of {"en":"single word","no":"Norwegian translation","s":"short English example sentence where the word is replaced by ___"}.`,{cache:false,modelTier:'quick'});
+  const a=JSON.parse(r.text.replace(/```json|```/g,'').trim()).filter(x=>x.en&&x.no&&x.s&&x.s.includes('___')&&!/\s/.test(x.en));
+  if(a.length>=4){V=a;btn.textContent='✅ '+a.length+' nye ord: '+topic}else btn.textContent=old
+ }catch(e){btn.textContent='Feilet – prøv igjen'}
+ btn.disabled=false}
+function menu(){exB.innerHTML='';
+ const sec=(t,items)=>{exB.append(E('h2','',t));items.forEach(([n,d,f])=>{const b=E('button','card');b.append(E('b','',n),E('span','',d));b.onclick=f;exB.append(b)})};
+ if(!SR)exB.append(E('div','x','Taleovelser krever talegjenkjenning, som ikke støttes her. Quizene fungerer fortsatt.'));
+ const dn=dueList().length,learned=Object.values(S.words).filter(v=>v.box>=3).length,tn=S.day===today()?S.n:0,stk=(S.last===today()||S.last===yday())?S.streak:0;
+ const pg=E('div','card');pg.style.cursor='default';pg.append(E('b','','🔥 '+stk+' dager på rad'),E('span','','I dag: '+tn+' / 20 aktiviteter · '+learned+' ord lært · '+Object.keys(S.words).length+' ord totalt'));exB.append(pg);
+ sec('Repetisjon',[['🔁 Dagens repetisjon',dn+' ord klare nå',review],['📌 Mine ord','Se, lytt og øv på vanskelige ord',myWords]]);
+ sec('Uttale',[
+  ['🎯 Setningsoving','Si setninger høyt og få ord-for-ord-sjekk',()=>drill('Setningsoving',SN[lvl.value])],
+  ['🌀 Tungebrekkere','Trener rytme og vanskelige lyder',()=>drill('Tungebrekkere',TW)],
+  ['👂 Minimalpar','Hør forskjellen: ship / sheep, think / sink',()=>quiz('Minimalpar',()=>{const p=pick(MP),a=pick(p);return{audio:a,prompt:'Hvilket ord hørte du?',options:shuf(p),answer:a,note:p[0]+' ≠ '+p[1]}})]]);
+ sec('Norske problemlyder',SND.map(g=>[g.n,g.d,()=>sound(g)]));
+ sec('Trykk og tonefall',[['🔤 Ordtrykk (quiz)','Hvilken stavelse har trykk?',()=>quiz('Ordtrykk',mkST)],['🎯 Si ordene med riktig trykk','Øv og sammenlign med modellen',()=>drill('Ordtrykk',ST.map(x=>x[0]))],['↗ Tonefall (quiz)','Stigende eller fallende?',()=>quiz('Tonefall',mkIN)],['🎤 Si setningene med tonefall','Øv og ta opp deg selv',()=>drill('Tonefall',IN.map(x=>x[0]))]]);
+ sec('Lytting',[['✍️ Diktat','Hør en setning og skriv den',dictate]]);
+ sec('Ordforråd',[
+  ['📖 Norsk → engelsk','Velg riktig engelsk ord',()=>quiz('Norsk → engelsk',()=>{const w=pick(V);return qNE(w,V)})],
+  ['🔊 Hør og velg','Hør engelsk ord, velg norsk betydning',()=>quiz('Hør og velg',()=>{const w=pick(V);return{w,audio:w.en,options:shuf([w.no,...shuf(V.filter(x=>x!==w)).slice(0,3).map(x=>x.no)]),answer:w.no,note:w.en+' = '+w.no}})],
+  ['✏️ Fyll inn','Velg ordet som passer i setningen',()=>quiz('Fyll inn',()=>{const w=pick(V);return{w,prompt:w.s,options:shuf([w.en,...shuf(V.filter(x=>x!==w)).slice(0,3).map(x=>x.en)]),answer:w.en,say:w.s.replace('___',w.en)}})],
+  ['🎤 Si ordet','Se norsk ord, si det på engelsk',sayWord]]);
+ exB.append(E('h2','','Nye ord med AI (velg tema)'));
+ const row=E('div','opts');['Reise','Jobb','Mat','Hverdag','Teknologi'].forEach(t=>{const b=E('button','opt',t);b.onclick=()=>newWords(t,b);row.append(b)});exB.append(row)}
+const LS='engtutor1';let S={streak:0,last:'',day:'',n:0,words:{}};
+try{Object.assign(S,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+const ds=t=>new Date(t-new Date(t).getTimezoneOffset()*6e4).toISOString().slice(0,10);
+const today=()=>ds(Date.now()),yday=()=>ds(Date.now()-864e5),DAYS=[0.007,1,3,7,14];
+function bump(){const t=today();if(S.day!==t){S.day=t;S.n=0}if(S.last!==t){S.streak=S.last===yday()?S.streak+1:1;S.last=t}S.n++;save()}
+function rec(w,ok){const e=S.words[w.en]||(S.words[w.en]={no:w.no,s:w.s||'',box:0,due:0,miss:0});
+ if(ok)e.box=Math.min(e.box+1,4);else{e.box=0;e.miss++}
+ e.due=Date.now()+DAYS[e.box]*864e5;save()}
+const dueList=()=>Object.entries(S.words).filter(([k,v])=>v.due<=Date.now()).map(([k,v])=>({en:k,...v}));
+function qNE(w,pool){const ds2=[...new Set(shuf(V.concat(pool)).map(x=>x.en).filter(e=>e!==w.en))].slice(0,3);
+ return{w,prompt:w.no,options:shuf([w.en,...ds2]),answer:w.en,say:w.en,note:(w.s||'').replace('___',w.en)}}
+const mkNE=pool=>()=>qNE(pick(pool),pool);
+function review(){const d=dueList();
+ if(!d.length){const b=screen('Repetisjon');b.append(E('div','q','Ingen ord er klare nå 🎉'),E('div','x','Ord du har øvd på dukker opp her igjen etter hvert. Gjør flere ordøvelser, så fylles listen.'));return}
+ const it=shuf(d);let i=0;quiz('Repetisjon',()=>qNE(it[i++%it.length],d),Math.min(8,d.length))}
+function myWords(){const b=screen('Mine ord');const a=Object.entries(S.words).map(([en,v])=>({en,...v})).sort((x,y)=>y.miss-x.miss);
+ if(!a.length){b.append(E('div','x','Ingen ord ennå. Gjør noen ordøvelser eller snakk med læreren.'));return}
+ const hard=a.filter(w=>w.miss>0);
+ if(hard.length){const h=E('button','btn','🎯 Øv på vanskelige ord ('+hard.length+')');h.onclick=()=>quiz('Vanskelige ord',mkNE(hard),6);b.append(h)}
+ a.forEach(w=>{const r=E('button','card');r.append(E('b','',w.en+' – '+w.no),E('span','','nivå '+w.box+'/4'+(w.miss?' · feil '+w.miss+'×':'')));r.onclick=()=>speak(w.en);b.append(r)})}
+let rc=null;
+async function recToggle(btn,box,target){
+ if(rc){rc.stop();return}
+ try{const ms=await navigator.mediaDevices.getUserMedia({audio:true});
+  const ch=[];rc=new MediaRecorder(ms);rc.ondataavailable=e=>ch.push(e.data);
+  rc.onstop=()=>{ms.getTracks().forEach(t=>t.stop());rc=null;btn.textContent='⏺ Ta opp på nytt';
+   const a=new Audio(URL.createObjectURL(new Blob(ch,{type:(ch[0]&&ch[0].type)||'audio/webm'})));
+   box.innerHTML='';
+   const me=E('button','sp','▶ Deg');me.onclick=()=>{a.currentTime=0;a.play()};
+   const md=E('button','sp','🔊 Modell');md.onclick=()=>speak(target);
+   const both=E('button','sp','⇄ Deg, så modell');both.onclick=()=>{a.onended=()=>{a.onended=null;setTimeout(()=>speak(target),300)};a.currentTime=0;a.play()};
+   box.append(me,md,both,E('div','x','Lytt etter rytme, trykk og lydene. Hva er forskjellen?'));both.click()};
+  rc.start();btn.textContent='⏹ Stopp opptak'}
+ catch(e){box.textContent='Fikk ikke tilgang til mikrofon.'}}
+function dictate(){
+ const body=screen('Diktat');
+ const go=()=>{body.innerHTML='';const t=pick(SN[lvl.value]);
+  const p=E('button','btn','🔊 Spill av'),sl=E('button','btn','🐢 Sakte'),inp=E('input'),ck=E('button','btn','Sjekk'),res=E('div','x'),nx=E('button','btn','Neste →');
+  p.onclick=()=>speak(t);sl.onclick=()=>speak(t,1);inp.placeholder='Skriv det du hører …';inp.style.cssText='width:100%;margin-top:10px;box-sizing:border-box';
+  ck.onclick=()=>{const v=inp.value.trim();if(!v)return;showRes(t,v,res);const ok=norm(v).join(' ')===norm(t).join(' ');res.lastChild.textContent=ok?'🎉 Helt riktig!':'Røde ord manglet eller var feil. Hør igjen og prøv på nytt.'};
+  nx.onclick=go;body.append(p,sl,inp,ck,res,nx);setTimeout(()=>speak(t),250)};
+ go()}
+const SC={free:{o:'Hi there! I’m your English tutor. Tell me a little about yourself. What did you do today?'},
+ interview:{r:'a friendly hiring manager interviewing the student for a job',o:'Welcome! Thanks for coming in today. Please, have a seat. Could you start by telling me a little about yourself?'},
+ restaurant:{r:'a waiter at an American restaurant',o:'Hi, welcome to Maple Grill! Table for one? Can I start you off with something to drink?'},
+ airport:{r:'an airline check-in agent',o:'Good morning! Can I see your passport, please? Where are you flying today?'},
+ phone:{r:'a customer service agent on the phone',o:'Thank you for calling Sunrise Internet, this is Jamie. How can I help you today?'},
+ doctor:{r:'a doctor seeing a patient',o:'Hi, I’m Dr. Lee. What brings you in today?'},
+ shop:{r:'a clerk in a clothing store',o:'Hi there! Are you looking for anything in particular today?'}};
+$('scn').onchange=()=>{const s=SC[$('scn').value];log.innerHTML='';hist=[{r:'Tutor',t:s.o}];bubble(s.o,false);speak(s.o);st.textContent='Din tur!'};
+const SND=[
+{n:'th (think)',d:'«s» eller «t» i stedet for th',tip:'Tungespissen lett mellom tennene, blås luft uten stemme. Ikke si «sink» eller «tink».',w:['think','three','thank','thing','thirty','through','month','birthday'],p:[['think','sink'],['three','tree'],['thank','tank'],['thought','taught']]},
+{n:'th (this)',d:'Tonende th: this, mother',tip:'Samme tungestilling som i think, men med stemme. Ikke si «dis» eller «zis».',w:['this','that','the','mother','brother','weather','together','other'],p:[['then','den'],['breathe','breeze'],['they','day']]},
+{n:'w og v',d:'wine / vine, west / vest',tip:'«w»: rund leppene som til «o» uten å berøre tennene. «v»: overtennene mot underleppen.',w:['wine','vine','west','vest','wet','vet','window','visit','wonderful','voice'],p:[['wine','vine'],['west','vest'],['wet','vet'],['very','wary']]},
+{n:'sh og ch',d:'ship / chip, sheep / cheap',tip:'«sh»: lang luft, som «sj». «ch»: start med t-stopp, som «tsj». Ikke bland dem.',w:['ship','chip','sheep','cheap','shoes','choose','wash','watch','church','fresh'],p:[['ship','chip'],['sheep','cheap'],['wash','watch'],['shoe','chew']]},
+{n:'Amerikansk r',d:'red, around, world',tip:'Ikke rull r-en. Trekk tungen litt tilbake uten å berøre ganen, og rund leppene litt.',w:['red','right','around','car','world','girl','story','three'],p:[['light','right'],['lead','read'],['fly','fry']]},
+{n:'Korte og lange vokaler',d:'sit / seat, full / fool',tip:'«sit» har kort, slapp i-lyd. «seat» har lang og spent ee-lyd. Lengden endrer betydningen.',w:['sit','seat','bit','beat','fill','feel','ship','sheep'],p:[['sit','seat'],['bit','beat'],['fill','feel'],['live','leave'],['full','fool'],['pull','pool']]},
+{n:'-ed-endelser',d:'worked, played, wanted',tip:'-ed har tre lyder: «t» (worked), «d» (played) og «id» (wanted, needed). Ikke si «work-ed».',w:['worked','asked','helped','played','called','cleaned','wanted','needed','decided','started']},
+{n:'Svak vokal (schwa)',d:'about, banana, support',tip:'Ubetonte stavelser blir en kort «uh»-lyd. about = «uh-BOUT», banana = «buh-NA-nuh». Det gir engelsk rytme.',w:['about','banana','support','today','problem','family','different','America']}];
+function sound(g){const b=screen(g.n);b.append(E('div','x',g.tip));
+ const a=E('button','btn','🎯 Si ordene');a.onclick=()=>drill(g.n,g.w);b.append(a);
+ if(g.p){const q=E('button','btn','👂 Hør forskjellen');q.onclick=()=>quiz(g.n,()=>{const p=pick(g.p),x=pick(p);return{audio:x,prompt:'Hvilket ord hørte du?',options:shuf(p),answer:x,note:p[0]+' ≠ '+p[1]}});b.append(q)}}
+const ST=[['banana',['ba','na','na'],1],['photograph',['pho','to','graph'],0],['photography',['pho','tog','ra','phy'],1],['important',['im','por','tant'],1],['comfortable',['com','for','ta','ble'],0],['vegetable',['veg','e','ta','ble'],0],['develop',['de','vel','op'],1],['interesting',['in','ter','est','ing'],0],['hotel',['ho','tel'],1],['decision',['de','ci','sion'],1],['engineer',['en','gi','neer'],2],['police',['po','lice'],1]];
+const IN=[['Are you coming?','↗ Stigende','Ja/nei-spørsmål går opp mot slutten.'],['Where do you live?','↘ Fallende','Spørsmål med hv-ord (what, where, why) går ned.'],['I’m from Norway.','↘ Fallende','Vanlige utsagn går ned til slutt.'],['Do you like coffee?','↗ Stigende','Ja/nei-spørsmål går opp.'],['What time is it?','↘ Fallende','Hv-spørsmål går ned.'],['Is this seat taken?','↗ Stigende','Ja/nei-spørsmål går opp.'],['Thank you very much.','↘ Fallende','Utsagn går ned.'],['Can I help you?','↗ Stigende','Ja/nei-spørsmål går opp.']];
+const mkST=()=>{const [w,s,i]=pick(ST);return{audio:w,prompt:s.join('-'),options:s.map((x,k)=>(k+1)+' · '+x),answer:(i+1)+' · '+s[i],note:s.map((x,k)=>k===i?x.toUpperCase():x).join('-'),say:w}};
+const mkIN=()=>{const [t,a,n]=pick(IN);return{prompt:t,options:['↗ Stigende','↘ Fallende'],answer:a,note:n,say:t}};
+$('mode').onclick=()=>{const on=exB.hidden;exB.hidden=!on;log.hidden=on;$('ft').hidden=on;$('mode').textContent=on?'💬 Samtale':'📚 Øvelser';try{speechSynthesis.cancel()}catch(e){}if(on)menu()};
+document.getElementById('f').onsubmit=e=>{e.preventDefault();const i=document.getElementById('t');const v=i.value.trim();if(v){i.value='';ask(v)}};
+
+if(!SR){mic.style.display='none';st.textContent='Taleinput støttes ikke i denne nettleseren – skriv i stedet.'}
+else{
+  let rec=null,on=false;
+  mic.onclick=()=>{
+    if(on){rec&&rec.stop();return}
+    try{speechSynthesis.cancel()}catch(e){}
+    rec=new SR();rec.lang='en-US';rec.interimResults=true;rec.continuous=false;
+    let fin='',conf=null,t0=0;
+    rec.onstart=()=>{on=true;mic.classList.add('rec');st.textContent='Lytter … trykk igjen for å stoppe'};
+    rec.onresult=e=>{if(!t0)t0=Date.now();let s='';for(const r of e.results){s+=r[0].transcript;if(r.isFinal){fin=s;conf=r[0].confidence}}st.textContent='“'+s+'”'};
+    rec.onerror=e=>{st.textContent=e.error==='not-allowed'?'Mikrofon er blokkert. Gi tilgang, eller skriv i stedet.':'Hørte ikke noe. Prøv igjen.'};
+    rec.onend=()=>{on=false;mic.classList.remove('rec');const v=(fin||'').trim();if(v)ask(v,{conf,secs:(Date.now()-t0)/1000})};
+    rec.start();
+  };
+}
+document.getElementById('key').onclick=()=>{const v=window.prompt('Ny Anthropic API-nøkkel (tom = slett):');if(v===null)return;const k=v.trim();try{k?localStorage.setItem('engkey',k):localStorage.removeItem('engkey')}catch(e){}};
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
